@@ -1,0 +1,29 @@
+{
+    "required": true,
+    "package": "dev.oblivion.client.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "client": [
+        "MixinMinecraftClient",
+        "MinecraftClientAccessor",
+        "PlayerMoveC2SPacketAccessor",
+        "MixinChatScreen",
+        "MixinMultiplayerScreen",
+        "MixinKeyboard",
+        "MixinClientConnection",
+        "MixinClientConnectionInitializer",
+        "MixinClientPlayerEntity",
+        "MixinInGameHud",
+        "MixinWorldRenderer",
+        "MixinClientPlayerInteractionManager",
+        "MixinLivingEntity",
+        "MixinEntity",
+        "MixinGameRenderer",
+        "MixinFluidBlock",
+        "MixinLightmapTextureManager",
+        "MixinAbstractBlock",
+        "MixinRenderTickCounter"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

@@ -1,0 +1,16 @@
+# Runtime/client data
+run/
+
+# Build outputs
+build/
+.gradle/
+out/
+
+# Node dependencies/logs
+node_modules/
+*.log
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/

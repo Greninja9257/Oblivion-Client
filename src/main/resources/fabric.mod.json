@@ -1,0 +1,22 @@
+{
+    "schemaVersion": 1,
+    "id": "oblivion-client",
+    "version": "${version}",
+    "name": "Oblivion Client",
+    "description": "A feature-rich Minecraft utility client",
+    "authors": ["OblivionDev"],
+    "contact": {},
+    "license": "All-Rights-Reserved",
+    "icon": "assets/oblivion-client/icon.png",
+    "environment": "client",
+    "entrypoints": {
+        "client": ["dev.oblivion.client.OblivionMod"]
+    },
+    "mixins": ["oblivion-client.mixins.json"],
+    "depends": {
+        "fabricloader": ">=0.16.0",
+        "fabric-api": ">=0.100.0",
+        "minecraft": "~1.21.4",
+        "java": ">=21"
+    }
+}
