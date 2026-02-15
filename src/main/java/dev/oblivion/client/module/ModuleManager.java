@@ -7,6 +7,7 @@ import dev.oblivion.client.module.player.*;
 import dev.oblivion.client.module.world.*;
 import dev.oblivion.client.module.misc.*;
 import dev.oblivion.client.module.bots.*;
+import dev.oblivion.client.module.exploit.*;
 import dev.oblivion.client.module.wurst.WurstModulesRegistrar;
 
 import java.util.ArrayList;
@@ -93,6 +94,35 @@ public class ModuleManager {
         register(new BotRawCommand());
         register(new BotRandomizeNames());
         register(new BotStopTasks());
+
+        // Exploit
+        register(new ServerCrasher());
+        register(new PacketCrasher());
+        register(new PacketFlood());
+        register(new BookExploit());
+        register(new BookBan());
+        register(new SignCrash());
+        register(new ChunkCrash());
+        register(new ChunkOverload());
+        register(new EntitySpam());
+        register(new ArmorStandLag());
+        register(new BoatLag());
+        register(new MobSpam());
+        register(new NBTCrash());
+        register(new TabCompleteCrash());
+        register(new CommandSpam());
+        register(new InventoryCrash());
+        register(new WindowClickSpam());
+        register(new CreativeNBTExploit());
+        register(new ItemFrameLag());
+        register(new MapDataCrash());
+        register(new PayloadCrash());
+        register(new PluginMessageCrash());
+        register(new TransactionSpam());
+        register(new MovementSpam());
+        register(new BlockPlacementSpam());
+        register(new ShulkerBoxCrash());
+        register(new BookOP());
 
         // Individually registered Wurst-compatible modules.
         WurstModulesRegistrar.registerAll(this);

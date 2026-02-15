@@ -1,16 +1,32 @@
-# Runtime/client data
-run/
-
-# Build outputs
+# Build output
 build/
-.gradle/
 out/
 
-# Node dependencies/logs
+# Runtime
+run/
+
+# Gradle
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+bin/
+
+# Node
 node_modules/
 *.log
 
-# OS/editor files
+# OS
 .DS_Store
-.idea/
-.vscode/
+Thumbs.db
+
+# Fabric
+remappedSrc/

@@ -7,7 +7,8 @@ public enum Category {
     PLAYER("Player"),
     WORLD("World"),
     MISC("Misc"),
-    BOTS("Bots");
+    BOTS("Bots"),
+    EXPLOIT("Exploit");
 
     public final String displayName;
 

@@ -27,6 +27,7 @@ public class ColorUtil {
             case WORLD -> rgb(200, 130, 255);
             case MISC -> rgb(180, 180, 180);
             case BOTS -> rgb(80, 255, 230);
+            case EXPLOIT -> rgb(255, 50, 50);
         };
     }
 }
