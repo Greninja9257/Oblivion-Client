@@ -3,6 +3,7 @@ package dev.oblivion.client.mixin;
 import dev.oblivion.client.OblivionClient;
 import dev.oblivion.client.module.render.Xray;
 import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,6 +21,17 @@ public class MixinAbstractBlock {
             if (!xray.isVisibleBlock(state.getBlock())) {
                 cir.setReturnValue(false);
             }
+        }
+    }
+
+    @Inject(method = "getRenderType", at = @At("HEAD"), cancellable = true)
+    private void onGetRenderType(CallbackInfoReturnable<BlockRenderType> cir) {
+        Xray xray = OblivionClient.get().moduleManager.get(Xray.class);
+        if (xray == null || !xray.isEnabled()) return;
+
+        BlockState state = (BlockState) (Object) this;
+        if (!xray.isVisibleBlock(state.getBlock())) {
+            cir.setReturnValue(BlockRenderType.INVISIBLE);
         }
     }
 }
