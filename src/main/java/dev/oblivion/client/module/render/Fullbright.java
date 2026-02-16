@@ -20,7 +20,7 @@ public class Fullbright extends Module {
             new EnumSetting.Builder<Mode>().name("Mode").description("Fullbright method").defaultValue(Mode.NIGHT_VISION).build()
     );
     private final DoubleSetting brightness = settings.getDefaultGroup().add(
-            new DoubleSetting.Builder().name("Brightness").description("Gamma brightness level").defaultValue(16.0).min(1.0).max(16.0).build()
+            new DoubleSetting.Builder().name("Brightness").description("Gamma brightness level (0.0 - 1.0)").defaultValue(1.0).min(0.0).max(1.0).build()
     );
 
     private double previousGamma;
@@ -46,7 +46,7 @@ public class Fullbright extends Module {
 
     @EventHandler
     public void onTick(TickEvent.Pre event) {
-        double targetGamma = Math.max(brightness.get(), 100.0);
+        double targetGamma = clampGamma(brightness.get());
         if (mc.options.getGamma().getValue() != targetGamma) {
             mc.options.getGamma().setValue(targetGamma);
         }
@@ -67,7 +67,7 @@ public class Fullbright extends Module {
     }
 
     private void applyMode() {
-        double targetGamma = Math.max(brightness.get(), 100.0);
+        double targetGamma = clampGamma(brightness.get());
         mc.options.getGamma().setValue(targetGamma);
 
         if (mc.player == null) return;
@@ -85,5 +85,9 @@ public class Fullbright extends Module {
 
     public double getBrightness() {
         return brightness.get();
+    }
+
+    private static double clampGamma(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
     }
 }
