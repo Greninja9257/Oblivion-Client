@@ -5,9 +5,19 @@ A feature-rich Minecraft 1.21.4 utility client built on the Fabric modloader. Sh
 <p align="center">
   <img src="logo/logo.png" alt="Oblivion Client Logo">
 </p>
+<p align="center">
+  <img src="https://img.shields.io/github/stars/Greninja9257/Oblivion-Client">
+  <img src="https://img.shields.io/github/forks/Greninja9257/Oblivion-Client">
+  <img src="https://img.shields.io/github/issues/Greninja9257/Oblivion-Client">
+  <img src="https://img.shields.io/github/issues-pr/Greninja9257/Oblivion-Client">
+  <img src="https://img.shields.io/github/contributors/Greninja9257/Oblivion-Client">
+</p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/Greninja9257/Oblivion-Client"> 
+  <img src="https://img.shields.io/github/repo-size/Greninja9257/Oblivion-Client">
+  <img src="https://img.shields.io/github/languages/top/Greninja9257/Oblivion-Client">
+  <img src="https://img.shields.io/github/last-commit/Greninja9257/Oblivion-Client">
+  <img src="https://img.shields.io/github/license/Greninja9257/Oblivion-Client">
 </p>
 
 ## Minecraft Version
