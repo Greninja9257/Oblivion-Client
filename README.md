@@ -3,7 +3,7 @@
 A feature-rich Minecraft 1.21.4 utility client built on the Fabric modloader. Ships with 215+ modules spanning combat, movement, rendering, world manipulation, bot automation, server exploits, and 128 integrated Wurst-compatible modules.
 
 <p align="center">
-  <img src="logo/logo.png" alt="Oblivion Client Logo" width="120">
+  <img src="logo/logo.png" alt="Oblivion Client Logo">
 </p>
 
 <p align="center">
