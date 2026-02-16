@@ -30,6 +30,12 @@ public class ClickGuiScreen extends Screen {
     private float scrollTarget = 0;
     private int contentHeight = 0;
 
+    // Horizontal tab scroll
+    private float tabScrollOffset = 0f;
+    private float tabScrollTarget = 0f;
+    private final Animation tabScrollAnim = new Animation(0f, Theme.ANIM_SPEED_FAST);
+    private int totalTabsWidth = 0;
+
     private static final int GUI_WIDTH = 380;
     private static final int GUI_MARGIN_TOP = 30;
     private static final int CARD_SPACING = 4;
@@ -48,7 +54,16 @@ public class ClickGuiScreen extends Screen {
                 GUI_WIDTH - Theme.PADDING * 2);
         scrollTarget = persistedScroll;
         scrollAnim.setTarget(scrollTarget);
+        computeTotalTabsWidth();
         rebuildCards();
+    }
+
+    private void computeTotalTabsWidth() {
+        totalTabsWidth = 0;
+        for (Category cat : Category.values()) {
+            totalTabsWidth += this.textRenderer.getWidth(cat.displayName) + 16 + 4;
+        }
+        totalTabsWidth -= 4; // no trailing spacing
     }
 
     private void rebuildCards() {
@@ -116,12 +131,42 @@ public class ClickGuiScreen extends Screen {
         // Search bar
         searchBar.render(context, mouseX, mouseY, delta);
 
-        // Category tabs
+        // Category tabs with horizontal scrolling
         int tabY = guiY + Theme.HEADER_HEIGHT + Theme.SEARCH_BAR_HEIGHT + Theme.PADDING * 2;
-        int tabX = guiX + Theme.PADDING;
+        int tabAreaLeft = guiX + Theme.PADDING;
+        int tabAreaWidth = GUI_WIDTH - Theme.PADDING * 2;
         Category[] categories = Category.values();
         boolean isSearching = !searchBar.getText().isEmpty();
 
+        // Update tab scroll animation
+        tabScrollAnim.setTarget(tabScrollTarget);
+        tabScrollAnim.update();
+        tabScrollOffset = tabScrollAnim.get();
+
+        boolean needsTabScroll = totalTabsWidth > tabAreaWidth;
+
+        // Draw tab scroll arrows if needed
+        int arrowWidth = needsTabScroll ? 12 : 0;
+        int tabClipLeft = tabAreaLeft + arrowWidth;
+        int tabClipRight = tabAreaLeft + tabAreaWidth - arrowWidth;
+
+        if (needsTabScroll) {
+            // Left arrow
+            boolean canScrollLeft = tabScrollOffset > 0;
+            int leftArrowColor = canScrollLeft ? Theme.TEXT_PRIMARY : Theme.withAlpha(Theme.TEXT_MUTED, 80);
+            context.drawText(this.textRenderer, "\u25C0", tabAreaLeft + 1, tabY + (Theme.TAB_HEIGHT - 8) / 2, leftArrowColor, true);
+
+            // Right arrow
+            float maxTabScroll = Math.max(0, totalTabsWidth - (tabClipRight - tabClipLeft));
+            boolean canScrollRight = tabScrollOffset < maxTabScroll;
+            int rightArrowColor = canScrollRight ? Theme.TEXT_PRIMARY : Theme.withAlpha(Theme.TEXT_MUTED, 80);
+            context.drawText(this.textRenderer, "\u25B6", tabAreaLeft + tabAreaWidth - 10, tabY + (Theme.TAB_HEIGHT - 8) / 2, rightArrowColor, true);
+        }
+
+        // Scissor for tab area
+        enableScissor(context, tabClipLeft, tabY, tabClipRight - tabClipLeft, Theme.TAB_HEIGHT);
+
+        int tabX = tabClipLeft - (int) tabScrollOffset;
         for (int i = 0; i < categories.length; i++) {
             Category cat = categories[i];
             boolean selected = cat == selectedCategory && !isSearching;
@@ -129,7 +174,11 @@ public class ClickGuiScreen extends Screen {
             tabAnimations[i].update();
 
             int tabWidth = this.textRenderer.getWidth(cat.displayName) + 16;
-            boolean tabHovered = mouseX >= tabX && mouseX <= tabX + tabWidth && mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT;
+
+            // Only process hover if within clip bounds
+            boolean tabVisible = tabX + tabWidth > tabClipLeft && tabX < tabClipRight;
+            boolean tabHovered = tabVisible && mouseX >= Math.max(tabX, tabClipLeft) && mouseX <= Math.min(tabX + tabWidth, tabClipRight)
+                    && mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT;
 
             float t = tabAnimations[i].get();
             int tabBg = Theme.lerpColor(Theme.BG_SECONDARY, Theme.BG_CARD_HOVER, tabHovered && !selected ? 0.5f : t * 0.3f);
@@ -149,6 +198,8 @@ public class ClickGuiScreen extends Screen {
 
             tabX += tabWidth + 4;
         }
+
+        disableScissor(context);
 
         // Module list area
         int listTop = tabY + Theme.TAB_HEIGHT + Theme.PADDING;
@@ -177,16 +228,21 @@ public class ClickGuiScreen extends Screen {
             scrollAnim.setTarget(scrollTarget);
         }
 
-        // Render module cards
+        // Render module cards with scissor clipping
+        enableScissor(context, guiX, listTop, GUI_WIDTH, listHeight);
+
         int cardY = listTop - (int) scroll;
         for (ModuleCard card : moduleCards) {
             card.setPosition(card.getX(), cardY);
             int cardH = card.getFullHeight();
+            // Render if any part is visible (scissor handles partial clipping)
             if (cardY + cardH > listTop && cardY < listBottom) {
                 card.render(context, mouseX, mouseY, delta);
             }
             cardY += cardH + CARD_SPACING;
         }
+
+        disableScissor(context);
 
         // Scrollbar
         if (contentHeight > listHeight) {
@@ -202,6 +258,14 @@ public class ClickGuiScreen extends Screen {
         int bottomY = guiY + guiHeight - 2;
         GuiRenderUtil.drawGradientRect(context, guiX + 20, bottomY, GUI_WIDTH - 40, 2,
                 Theme.withAlpha(Theme.ACCENT_PRIMARY, 0), Theme.ACCENT_PRIMARY);
+    }
+
+    private void enableScissor(DrawContext context, int x, int y, int width, int height) {
+        context.enableScissor(x, y, x + width, y + height);
+    }
+
+    private void disableScissor(DrawContext context) {
+        context.disableScissor();
     }
 
     private boolean modulesMatch(List<Module> expected) {
@@ -224,10 +288,36 @@ public class ClickGuiScreen extends Screen {
         int guiX = (this.width - GUI_WIDTH) / 2;
         int guiY = GUI_MARGIN_TOP;
         int tabY = guiY + Theme.HEADER_HEIGHT + Theme.SEARCH_BAR_HEIGHT + Theme.PADDING * 2;
-        int tabX = guiX + Theme.PADDING;
+        int tabAreaLeft = guiX + Theme.PADDING;
+        int tabAreaWidth = GUI_WIDTH - Theme.PADDING * 2;
+        boolean needsTabScroll = totalTabsWidth > tabAreaWidth;
+        int arrowWidth = needsTabScroll ? 12 : 0;
+        int tabClipLeft = tabAreaLeft + arrowWidth;
+        int tabClipRight = tabAreaLeft + tabAreaWidth - arrowWidth;
+
+        // Check arrow clicks
+        if (needsTabScroll && mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT) {
+            if (mouseX >= tabAreaLeft && mouseX <= tabAreaLeft + arrowWidth) {
+                // Left arrow clicked
+                tabScrollTarget = Math.max(0, tabScrollTarget - 60);
+                return true;
+            }
+            if (mouseX >= tabAreaLeft + tabAreaWidth - arrowWidth && mouseX <= tabAreaLeft + tabAreaWidth) {
+                // Right arrow clicked
+                float maxTabScroll = Math.max(0, totalTabsWidth - (tabClipRight - tabClipLeft));
+                tabScrollTarget = Math.min(maxTabScroll, tabScrollTarget + 60);
+                return true;
+            }
+        }
+
+        // Check tab clicks (only within clip area)
+        int tabX = tabClipLeft - (int) tabScrollOffset;
         for (Category cat : Category.values()) {
             int tabWidth = this.textRenderer.getWidth(cat.displayName) + 16;
-            if (mouseX >= tabX && mouseX <= tabX + tabWidth && mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT) {
+            int visibleLeft = Math.max(tabX, tabClipLeft);
+            int visibleRight = Math.min(tabX + tabWidth, tabClipRight);
+            if (visibleLeft < visibleRight && mouseX >= visibleLeft && mouseX <= visibleRight
+                    && mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT) {
                 selectedCategory = cat;
                 persistedCategory = cat;
                 scrollTarget = 0;
@@ -263,10 +353,30 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        int guiX = (this.width - GUI_WIDTH) / 2;
         int guiY = GUI_MARGIN_TOP;
-        int tabY = guiY + Theme.HEADER_HEIGHT + Theme.SEARCH_BAR_HEIGHT + Theme.TAB_HEIGHT + Theme.PADDING * 3;
+        int tabY = guiY + Theme.HEADER_HEIGHT + Theme.SEARCH_BAR_HEIGHT + Theme.PADDING * 2;
+        int tabAreaLeft = guiX + Theme.PADDING;
+        int tabAreaWidth = GUI_WIDTH - Theme.PADDING * 2;
+
+        // Horizontal scroll on tabs when hovering over tab area
+        if (mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT
+                && mouseX >= tabAreaLeft && mouseX <= tabAreaLeft + tabAreaWidth
+                && totalTabsWidth > tabAreaWidth) {
+            boolean needsTabScroll = totalTabsWidth > tabAreaWidth;
+            int arrowWidth = needsTabScroll ? 12 : 0;
+            int tabClipLeft = tabAreaLeft + arrowWidth;
+            int tabClipRight = tabAreaLeft + tabAreaWidth - arrowWidth;
+            float maxTabScroll = Math.max(0, totalTabsWidth - (tabClipRight - tabClipLeft));
+            tabScrollTarget -= (float) verticalAmount * 30;
+            tabScrollTarget = Math.max(0, Math.min(maxTabScroll, tabScrollTarget));
+            return true;
+        }
+
+        // Vertical scroll for module list
+        int listTop = tabY + Theme.TAB_HEIGHT + Theme.PADDING;
         int listBottom = guiY + (this.height - guiY * 2) - Theme.PADDING;
-        int listHeight = listBottom - tabY;
+        int listHeight = listBottom - listTop;
 
         float maxScroll = Math.max(0, contentHeight - listHeight);
         scrollTarget -= (float) verticalAmount * 24;
