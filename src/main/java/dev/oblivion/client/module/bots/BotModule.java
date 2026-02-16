@@ -9,7 +9,36 @@ import dev.oblivion.client.setting.impl.IntSetting;
 import dev.oblivion.client.setting.impl.StringSetting;
 import dev.oblivion.client.util.ChatUtil;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
+
 public abstract class BotModule extends Module {
+
+    private static Boolean nodeAvailable = null;
+
+    private static boolean isNodeInstalled() {
+        if (nodeAvailable != null) return nodeAvailable;
+        try {
+            ProcessBuilder pb = new ProcessBuilder("node", "--version");
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            try (BufferedReader ignored = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                // consume stream
+            }
+            if (!process.waitFor(4, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                nodeAvailable = false;
+                return false;
+            }
+            nodeAvailable = process.exitValue() == 0;
+        } catch (Exception e) {
+            nodeAvailable = false;
+        }
+        return nodeAvailable;
+    }
+
     protected final StringSetting bridgeEndpoint = settings.getDefaultGroup().add(
         new StringSetting.Builder()
             .name("Bridge Endpoint")
@@ -47,6 +76,11 @@ public abstract class BotModule extends Module {
     }
 
     protected void sendAndReport(JsonObject payload) {
+        if (!isNodeInstalled()) {
+            ChatUtil.error("Node.js is not installed! Bots require Node.js to function.");
+            ChatUtil.warning("Install Node.js from https://nodejs.org/ and restart Minecraft.");
+            return;
+        }
         boolean ok = OblivionClient.get().botBridgeManager.sendCommand(bridgeEndpoint.get(), apiToken.get(), payload);
         if (ok) {
             ChatUtil.success(name + " command sent.");

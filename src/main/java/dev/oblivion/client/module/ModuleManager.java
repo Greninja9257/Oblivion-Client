@@ -33,6 +33,11 @@ public class ModuleManager {
         register(new Reach());
         register(new Velocity());
         register(new AutoArmor());
+        register(new AnchorAura());
+        register(new AutoWeapon());
+        register(new BedAura());
+        register(new Offhand());
+        register(new Trigger());
 
         // Movement
         register(new Fly());
@@ -45,6 +50,17 @@ public class ModuleManager {
         register(new BoatFly());
         register(new Spider());
         register(new Scaffold());
+        register(new AirJump());
+        register(new AntiAFK());
+        register(new AutoWalk());
+        register(new Blink());
+        register(new EntitySpeed());
+        register(new FastClimb());
+        register(new HighJump());
+        register(new LongJump());
+        register(new SafeWalk());
+        register(new Sneak());
+        register(new ReverseStep());
 
         // Render
         register(new ESP());
@@ -55,6 +71,16 @@ public class ModuleManager {
         register(new Xray());
         register(new ChestESP());
         register(new Freecam());
+        register(new Breadcrumbs());
+        register(new Chams());
+        register(new FreeLook());
+        register(new HoleESP());
+        register(new ItemHighlight());
+        register(new LightOverlay());
+        register(new LogoutSpots());
+        register(new Trajectories());
+        register(new VoidESP());
+        register(new Zoom());
 
         // Player
         register(new AutoEat());
@@ -66,12 +92,26 @@ public class ModuleManager {
         register(new AntiHunger());
         register(new CreativeMode());
         register(new InventorySort());
+        register(new AutoFish());
+        register(new AutoReplenish());
+        register(new ChestSwap());
+        register(new DeathPosition());
+        register(new GhostHand());
+        register(new NoRotate());
+        register(new PacketMine());
+        register(new Portals());
+        register(new PotionSaver());
 
         // World
         register(new Nuker());
         register(new AutoBuild());
         register(new Timer());
         register(new ChunkLoader());
+        register(new EndermanLook());
+        register(new LiquidFiller());
+        register(new SpawnProofer());
+        register(new StashFinder());
+        register(new VeinMiner());
 
         // Misc
         register(new AutoDisconnect());
@@ -79,6 +119,14 @@ public class ModuleManager {
         register(new Spammer());
         register(new AutoReconnect());
         register(new MiddleClickFriend());
+        register(new AntiPacketKick());
+        register(new AutoClicker());
+        register(new AutoLog());
+        register(new BetterChat());
+        register(new NameProtect());
+        register(new PacketCanceller());
+        register(new ServerSpoof());
+        register(new SoundBlocker());
 
         // Bots
         register(new BotSpawnSwarm());
@@ -123,6 +171,7 @@ public class ModuleManager {
         register(new BlockPlacementSpam());
         register(new ShulkerBoxCrash());
         register(new BookOP());
+        register(new AntiCrashItem());
 
         // Individually registered Wurst-compatible modules.
         WurstModulesRegistrar.registerAll(this);

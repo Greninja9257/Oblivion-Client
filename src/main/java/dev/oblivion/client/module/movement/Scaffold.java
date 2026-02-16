@@ -5,12 +5,10 @@ import dev.oblivion.client.event.events.TickEvent;
 import dev.oblivion.client.module.Category;
 import dev.oblivion.client.module.Module;
 import dev.oblivion.client.setting.impl.BoolSetting;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -58,9 +56,13 @@ public class Scaffold extends Module {
         PlacementInfo placement = findPlacement(below);
         if (placement != null) {
             if (rotate.get()) {
+                // Silent rotation: send server-side packet without moving the camera
                 float[] rotations = calculateRotations(placement.hitPos());
-                mc.player.setYaw(rotations[0]);
-                mc.player.setPitch(rotations[1]);
+                mc.player.networkHandler.sendPacket(
+                    new PlayerMoveC2SPacket.LookAndOnGround(
+                        rotations[0], rotations[1], mc.player.isOnGround(), false
+                    )
+                );
             }
 
             BlockHitResult hitResult = new BlockHitResult(
@@ -69,6 +71,15 @@ public class Scaffold extends Module {
 
             mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hitResult);
             mc.player.swingHand(Hand.MAIN_HAND);
+
+            if (rotate.get()) {
+                // Restore original rotation on server side
+                mc.player.networkHandler.sendPacket(
+                    new PlayerMoveC2SPacket.LookAndOnGround(
+                        mc.player.getYaw(), mc.player.getPitch(), mc.player.isOnGround(), false
+                    )
+                );
+            }
 
             // Tower: move player upward when jumping
             if (tower.get() && mc.options.jumpKey.isPressed()) {

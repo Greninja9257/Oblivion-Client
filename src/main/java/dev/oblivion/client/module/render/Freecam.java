@@ -5,7 +5,6 @@ import dev.oblivion.client.event.events.TickEvent;
 import dev.oblivion.client.module.Category;
 import dev.oblivion.client.module.Module;
 import dev.oblivion.client.setting.impl.DoubleSetting;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class Freecam extends Module {
@@ -17,6 +16,7 @@ public class Freecam extends Module {
     private double savedX, savedY, savedZ;
     private float savedYaw, savedPitch;
     private boolean savedFlying;
+    private boolean savedNoClip;
 
     // Current freecam camera position
     private double camX, camY, camZ;
@@ -37,6 +37,7 @@ public class Freecam extends Module {
         savedYaw = mc.player.getYaw();
         savedPitch = mc.player.getPitch();
         savedFlying = mc.player.getAbilities().flying;
+        savedNoClip = mc.player.noClip;
 
         // Initialize camera at player position
         camX = savedX;
@@ -44,6 +45,9 @@ public class Freecam extends Module {
         camZ = savedZ;
         camYaw = savedYaw;
         camPitch = savedPitch;
+
+        // Spectator-like view through blocks while freecam is active.
+        mc.player.noClip = true;
     }
 
     @Override
@@ -55,6 +59,7 @@ public class Freecam extends Module {
         mc.player.setYaw(savedYaw);
         mc.player.setPitch(savedPitch);
         mc.player.getAbilities().flying = savedFlying;
+        mc.player.noClip = savedNoClip;
         mc.player.setVelocity(Vec3d.ZERO);
     }
 
@@ -64,6 +69,7 @@ public class Freecam extends Module {
 
         // Prevent momentum from moving the player body while in freecam.
         mc.player.setVelocity(Vec3d.ZERO);
+        mc.player.noClip = true;
 
         // Update camera rotation from player input
         camYaw = mc.player.getYaw();
