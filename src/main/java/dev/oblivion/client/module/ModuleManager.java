@@ -15,10 +15,23 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class ModuleManager {
+    // Duplicate-name policy: keep only one module per visible name.
+    // Most duplicates should prefer non-Wurst implementations, with a few
+    // explicit Wurst exceptions that are currently more complete.
+    private static final Set<String> PREFER_WURST_DUPLICATES = Set.of(
+        "blink",
+        "autofish",
+        "potionsaver",
+        "safewalk",
+        "trajectories",
+        "highjump"
+    );
+
     private final List<Module> modules = new ArrayList<>();
     private final Map<Class<? extends Module>, Module> byClass = new HashMap<>();
     private final Map<String, Module> byName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -178,9 +191,41 @@ public class ModuleManager {
     }
 
     public void register(Module module) {
+        Module existing = byName.get(module.name);
+        if (existing != null) {
+            Module preferred = choosePreferred(existing, module);
+            if (preferred == existing) {
+                return;
+            }
+
+            modules.remove(existing);
+            byClass.remove(existing.getClass());
+        }
+
         modules.add(module);
         byClass.put(module.getClass(), module);
         byName.put(module.name, module);
+    }
+
+    private Module choosePreferred(Module a, Module b) {
+        if (a.getClass() == b.getClass()) return a;
+
+        String name = a.name.toLowerCase();
+        boolean aWurst = isWurstModule(a);
+        boolean bWurst = isWurstModule(b);
+
+        if (aWurst == bWurst) return a;
+
+        if (PREFER_WURST_DUPLICATES.contains(name)) {
+            return aWurst ? a : b;
+        }
+
+        // Default policy: prefer non-Wurst implementation.
+        return aWurst ? b : a;
+    }
+
+    private boolean isWurstModule(Module module) {
+        return module.getClass().getSimpleName().startsWith("Wurst");
     }
 
     @SuppressWarnings("unchecked")
