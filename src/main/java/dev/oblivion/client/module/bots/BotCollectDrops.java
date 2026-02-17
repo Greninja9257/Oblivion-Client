@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.DoubleSetting;
 
 public final class BotCollectDrops extends BotModule {
@@ -14,14 +13,13 @@ public final class BotCollectDrops extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("collect_start");
-        payload.addProperty("radius", radius.get());
-        sendAndReport(payload);
+        botManager().startCollect(botAmount.get(), radius.get());
+        reportAction("collect task started");
     }
 
     @Override
     protected void onDisable() {
-        JsonObject payload = createBasePayload("collect_stop");
-        sendAndReport(payload);
+        botManager().stopCollect(botAmount.get());
+        reportAction("collect task stopped");
     }
 }

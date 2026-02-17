@@ -1,11 +1,12 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.BoolSetting;
 import dev.oblivion.client.setting.impl.IntSetting;
 import dev.oblivion.client.setting.impl.StringSetting;
 import dev.oblivion.client.util.ChatUtil;
 import net.minecraft.client.network.ServerInfo;
+
+import java.util.List;
 
 public final class BotSpawnSwarm extends BotModule {
     private final BoolSetting randomNames = settings.getDefaultGroup().add(
@@ -32,16 +33,12 @@ public final class BotSpawnSwarm extends BotModule {
         new IntSetting.Builder().name("Server Port").description("Target server port.").defaultValue(25565).range(1, 65535).visible(() -> !useCurrentServer.get()).build()
     );
 
-    private final StringSetting minecraftVersion = settings.getDefaultGroup().add(
-        new StringSetting.Builder().name("Version").description("Mineflayer protocol version (empty=latest supported, 'auto'=ping detect).").defaultValue("").build()
-    );
-
     private final StringSetting fixedName = settings.getDefaultGroup().add(
         new StringSetting.Builder().name("Fixed Name").description("Used if random names is disabled.").defaultValue("obv_bot").visible(() -> !randomNames.get()).build()
     );
 
     public BotSpawnSwarm() {
-        super("BotSpawnSwarm", "Spawns Mineflayer bots with configurable amount/random names.");
+        super("BotSpawnSwarm", "Spawns integrated Java bots with configurable amount/random names.");
     }
 
     @Override
@@ -60,15 +57,17 @@ public final class BotSpawnSwarm extends BotModule {
             }
         }
 
-        JsonObject payload = createBasePayload("spawn_swarm");
-        payload.addProperty("randomNames", randomNames.get());
-        payload.addProperty("namePrefix", namePrefix.get());
-        payload.addProperty("randomLength", randomLength.get());
-        payload.addProperty("serverHost", host);
-        payload.addProperty("serverPort", port);
-        payload.addProperty("version", minecraftVersion.get());
-        payload.addProperty("fixedName", fixedName.get());
-        sendAndReport(payload);
+        List<String> spawned = botManager().spawnSwarm(
+            host,
+            port,
+            botAmount.get(),
+            randomNames.get(),
+            namePrefix.get(),
+            randomLength.get(),
+            fixedName.get()
+        );
+
+        reportAction("spawn requested for " + spawned.size() + " bot(s)");
         disable();
     }
 
@@ -98,7 +97,6 @@ public final class BotSpawnSwarm extends BotModule {
             host = host.substring(1, host.length() - 1);
         }
 
-        // Keep the hostname intact to preserve SRV and host-based proxy routing.
         return new HostPort(host, port);
     }
 

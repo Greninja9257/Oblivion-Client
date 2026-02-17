@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.StringSetting;
 
 public final class BotGuard extends BotModule {
@@ -14,14 +13,13 @@ public final class BotGuard extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("guard_start");
-        payload.addProperty("target", targetPlayer.get());
-        sendAndReport(payload);
+        botManager().startGuard(botAmount.get(), targetPlayer.get());
+        reportAction("guard task started");
     }
 
     @Override
     protected void onDisable() {
-        JsonObject payload = createBasePayload("guard_stop");
-        sendAndReport(payload);
+        botManager().stopGuard(botAmount.get());
+        reportAction("guard task stopped");
     }
 }

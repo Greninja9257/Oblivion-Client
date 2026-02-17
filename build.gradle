@@ -12,6 +12,8 @@ base {
 
 repositories {
     mavenCentral()
+    maven { url = "https://repo.opencollab.dev/main/" }
+    maven { url = "https://jitpack.io" }
 }
 
 dependencies {
@@ -20,6 +22,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     implementation "io.netty:netty-handler-proxy:4.1.115.Final"
+    implementation "com.github.GeyserMC:MCProtocolLib:1.21.4-1"
 }
 
 loom {

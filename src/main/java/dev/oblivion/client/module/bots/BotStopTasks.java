@@ -1,7 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
-
 public final class BotStopTasks extends BotModule {
     public BotStopTasks() {
         super("BotStopTasks", "Stops current scripted tasks for selected bots.");
@@ -9,8 +7,8 @@ public final class BotStopTasks extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("stop_tasks");
-        sendAndReport(payload);
+        botManager().stopAllTasks(botAmount.get());
+        reportAction("tasks stopped");
         disable();
     }
 }

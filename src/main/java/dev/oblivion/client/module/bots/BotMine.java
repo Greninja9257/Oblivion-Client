@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.IntSetting;
 import dev.oblivion.client.setting.impl.StringSetting;
 
@@ -19,15 +18,13 @@ public final class BotMine extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("mine_start");
-        payload.addProperty("block", blockId.get());
-        payload.addProperty("maxBlocks", maxBlocks.get());
-        sendAndReport(payload);
+        botManager().startMine(botAmount.get(), blockId.get(), maxBlocks.get());
+        reportAction("mine task started");
     }
 
     @Override
     protected void onDisable() {
-        JsonObject payload = createBasePayload("mine_stop");
-        sendAndReport(payload);
+        botManager().stopMine(botAmount.get());
+        reportAction("mine task stopped");
     }
 }

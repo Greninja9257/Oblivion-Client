@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.StringSetting;
 
 public final class BotFarm extends BotModule {
@@ -14,14 +13,13 @@ public final class BotFarm extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("farm_start");
-        payload.addProperty("crop", crop.get());
-        sendAndReport(payload);
+        botManager().startFarm(botAmount.get(), crop.get());
+        reportAction("farm task started");
     }
 
     @Override
     protected void onDisable() {
-        JsonObject payload = createBasePayload("farm_stop");
-        sendAndReport(payload);
+        botManager().stopFarm(botAmount.get());
+        reportAction("farm task stopped");
     }
 }

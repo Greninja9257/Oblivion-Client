@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.BoolSetting;
 import dev.oblivion.client.setting.impl.StringSetting;
 
@@ -27,12 +26,8 @@ public final class BotAutoRegister extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("auto_register");
-        payload.addProperty("enabled", enabledMode.get());
-        payload.addProperty("password", password.get());
-        payload.addProperty("registerFormat", registerFormat.get());
-        payload.addProperty("loginFormat", loginFormat.get());
-        sendAndReport(payload);
+        botManager().setAutoRegister(enabledMode.get(), password.get(), registerFormat.get(), loginFormat.get());
+        reportAction(enabledMode.get() ? "auto-register enabled" : "auto-register disabled");
         disable();
     }
 }

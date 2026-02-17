@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.BoolSetting;
 import dev.oblivion.client.setting.impl.IntSetting;
 import dev.oblivion.client.setting.impl.StringSetting;
@@ -38,12 +37,12 @@ public final class BotSendChat extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload(repeat.get() ? "chat_spam_start" : "chat_send");
-        payload.addProperty("message", message.get());
-        payload.addProperty("delayMs", delayMs.get());
-        sendAndReport(payload);
-
-        if (!repeat.get()) {
+        if (repeat.get()) {
+            botManager().chatSpamStart(botAmount.get(), message.get(), delayMs.get());
+            reportAction("chat spam started");
+        } else {
+            botManager().chatSend(botAmount.get(), message.get());
+            reportAction("chat sent");
             disable();
         }
     }
@@ -51,7 +50,7 @@ public final class BotSendChat extends BotModule {
     @Override
     protected void onDisable() {
         if (!repeat.get()) return;
-        JsonObject payload = createBasePayload("chat_spam_stop");
-        sendAndReport(payload);
+        botManager().chatSpamStop(botAmount.get());
+        reportAction("chat spam stopped");
     }
 }

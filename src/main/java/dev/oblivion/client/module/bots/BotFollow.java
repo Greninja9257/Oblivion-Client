@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.DoubleSetting;
 import dev.oblivion.client.setting.impl.StringSetting;
 
@@ -19,15 +18,13 @@ public final class BotFollow extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("follow_start");
-        payload.addProperty("target", targetPlayer.get());
-        payload.addProperty("distance", followDistance.get());
-        sendAndReport(payload);
+        botManager().startFollow(botAmount.get(), targetPlayer.get(), followDistance.get());
+        reportAction("follow task started");
     }
 
     @Override
     protected void onDisable() {
-        JsonObject payload = createBasePayload("follow_stop");
-        sendAndReport(payload);
+        botManager().stopFollow(botAmount.get());
+        reportAction("follow task stopped");
     }
 }

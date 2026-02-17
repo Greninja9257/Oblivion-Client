@@ -1,7 +1,7 @@
 package dev.oblivion.client;
 
 import dev.oblivion.client.account.AccountManager;
-import dev.oblivion.client.bot.BotBridgeManager;
+import dev.oblivion.client.bot.BotManager;
 import dev.oblivion.client.command.CommandManager;
 import dev.oblivion.client.config.ConfigManager;
 import dev.oblivion.client.event.EventBus;
@@ -29,7 +29,7 @@ public class OblivionClient {
     public final FriendManager friendManager = new FriendManager();
     public final AccountManager accountManager = new AccountManager();
     public final ProxyManager proxyManager = new ProxyManager();
-    public final BotBridgeManager botBridgeManager = new BotBridgeManager();
+    public final BotManager botManager = new BotManager();
     public final HudManager hudManager = new HudManager();
     public final PluginManager pluginManager = new PluginManager();
     public final NotificationManager notificationManager = new NotificationManager();
@@ -56,7 +56,7 @@ public class OblivionClient {
         try { friendManager.init(); } catch (Exception e) { LOGGER.error("Failed to init friends", e); }
         try { accountManager.init(); } catch (Exception e) { LOGGER.error("Failed to init accounts", e); }
         try { proxyManager.init(); } catch (Exception e) { LOGGER.error("Failed to init proxies", e); }
-        try { botBridgeManager.init(); } catch (Exception e) { LOGGER.error("Failed to init bot bridge", e); }
+        try { botManager.init(); } catch (Exception e) { LOGGER.error("Failed to init bot manager", e); }
         try { pluginManager.init(); } catch (Exception e) { LOGGER.error("Failed to init plugins", e); }
         try { configManager.load(); } catch (Exception e) { LOGGER.error("Failed to load config", e); }
 
@@ -66,7 +66,7 @@ public class OblivionClient {
     public synchronized void shutdown() {
         LOGGER.info("Shutting down {}...", NAME);
         try { configManager.save(); } catch (Exception e) { LOGGER.error("Failed to save config", e); }
-        try { botBridgeManager.shutdown(); } catch (Exception e) { LOGGER.error("Failed to shutdown bot bridge", e); }
+        try { botManager.shutdown(); } catch (Exception e) { LOGGER.error("Failed to shutdown bot manager", e); }
         try { pluginManager.shutdown(); } catch (Exception e) { LOGGER.error("Failed to shutdown plugins", e); }
         initialized = false;
     }
@@ -78,7 +78,7 @@ public class OblivionClient {
     public FriendManager getFriendManager() { return friendManager; }
     public AccountManager getAccountManager() { return accountManager; }
     public ProxyManager getProxyManager() { return proxyManager; }
-    public BotBridgeManager getBotBridgeManager() { return botBridgeManager; }
+    public BotManager getBotManager() { return botManager; }
     public HudManager getHudManager() { return hudManager; }
     public PluginManager getPluginManager() { return pluginManager; }
     public NotificationManager getNotificationManager() { return notificationManager; }

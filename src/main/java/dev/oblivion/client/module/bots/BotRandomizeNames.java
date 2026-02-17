@@ -1,18 +1,15 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import dev.oblivion.client.OblivionClient;
-import dev.oblivion.client.setting.impl.IntSetting;
-import dev.oblivion.client.setting.impl.StringSetting;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class BotRandomizeNames extends BotModule {
-    private final StringSetting namePrefix = settings.getDefaultGroup().add(
-        new StringSetting.Builder().name("Name Prefix").description("Prefix used for generated names.").defaultValue("obv_").build()
+    private final dev.oblivion.client.setting.impl.StringSetting namePrefix = settings.getDefaultGroup().add(
+        new dev.oblivion.client.setting.impl.StringSetting.Builder().name("Name Prefix").description("Prefix used for generated names.").defaultValue("obv_").build()
     );
 
-    private final IntSetting randomLength = settings.getDefaultGroup().add(
-        new IntSetting.Builder().name("Random Length").description("Suffix length for generated names.").defaultValue(6).range(3, 16).build()
+    private final dev.oblivion.client.setting.impl.IntSetting randomLength = settings.getDefaultGroup().add(
+        new dev.oblivion.client.setting.impl.IntSetting.Builder().name("Random Length").description("Suffix length for generated names.").defaultValue(6).range(3, 16).build()
     );
 
     public BotRandomizeNames() {
@@ -21,13 +18,12 @@ public final class BotRandomizeNames extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("set_names");
-        JsonArray names = new JsonArray();
+        List<String> names = new ArrayList<>();
         for (int i = 0; i < botAmount.get(); i++) {
-            names.add(OblivionClient.get().botBridgeManager.randomName(namePrefix.get(), randomLength.get()));
+            names.add(botManager().randomName(namePrefix.get(), randomLength.get()));
         }
-        payload.add("names", names);
-        sendAndReport(payload);
+        botManager().setNames(names);
+        reportAction("queued " + names.size() + " generated name(s)");
         disable();
     }
 }

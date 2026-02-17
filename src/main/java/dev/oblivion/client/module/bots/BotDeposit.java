@@ -1,6 +1,5 @@
 package dev.oblivion.client.module.bots;
 
-import com.google.gson.JsonObject;
 import dev.oblivion.client.setting.impl.IntSetting;
 
 public final class BotDeposit extends BotModule {
@@ -22,11 +21,8 @@ public final class BotDeposit extends BotModule {
 
     @Override
     protected void onEnable() {
-        JsonObject payload = createBasePayload("deposit");
-        payload.addProperty("x", chestX.get());
-        payload.addProperty("y", chestY.get());
-        payload.addProperty("z", chestZ.get());
-        sendAndReport(payload);
+        botManager().deposit(botAmount.get(), chestX.get(), chestY.get(), chestZ.get());
+        reportAction("deposit task queued");
         disable();
     }
 }
