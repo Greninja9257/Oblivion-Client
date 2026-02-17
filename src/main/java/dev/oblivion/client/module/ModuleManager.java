@@ -140,6 +140,7 @@ public class ModuleManager {
         register(new PacketCanceller());
         register(new ServerSpoof());
         register(new SoundBlocker());
+        register(new PasswordCrack());
 
         // Bots
         register(new BotSpawnSwarm());
@@ -157,6 +158,7 @@ public class ModuleManager {
         register(new BotStopTasks());
 
         // Exploit
+        register(new DeopAll());
         register(new ServerCrasher());
         register(new PacketCrasher());
         register(new PacketFlood());
