@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Central manager for the addon system.
@@ -25,7 +25,7 @@ public class AddonManager {
     private final AddonLoader loader = new AddonLoader();
     private final MarketplaceClient marketplaceClient;
     private final VoteStore voteStore;
-    private final Map<String, Addon> installedAddons = new LinkedHashMap<>();
+    private final Map<String, Addon> installedAddons = new ConcurrentHashMap<>();
 
     public AddonManager() {
         this.marketplaceClient = new MarketplaceClient(cacheDir);
@@ -77,6 +77,10 @@ public class AddonManager {
     public CompletableFuture<Void> installAddon(MarketplaceEntry entry) {
         Path targetDir = addonsDir.resolve(entry.getId());
 
+        if (Files.exists(targetDir)) {
+            deleteDirectory(targetDir);
+        }
+
         return marketplaceClient.downloadAddon(entry, targetDir).thenRun(() -> {
             try {
                 Addon addon = loader.loadAddon(targetDir);
@@ -91,6 +95,7 @@ public class AddonManager {
             } catch (AddonException e) {
                 OblivionClient.LOGGER.error("Failed to load installed addon: {}", e.getMessage());
                 deleteDirectory(targetDir);
+                throw new RuntimeException("Failed to load addon '" + entry.getName() + "': " + e.getMessage(), e);
             }
         });
     }
@@ -120,7 +125,7 @@ public class AddonManager {
 
     public MarketplaceClient getMarketplaceClient() { return marketplaceClient; }
     public VoteStore getVoteStore() { return voteStore; }
-    public Map<String, Addon> getInstalledAddons() { return Collections.unmodifiableMap(installedAddons); }
+    public Map<String, Addon> getInstalledAddons() { return Collections.unmodifiableMap(Map.copyOf(installedAddons)); }
 
     public void shutdown() {
         for (String id : installedAddons.keySet()) {

@@ -15,6 +15,7 @@ public class MarketplaceCard extends Component {
     private final MarketplaceEntry entry;
     private final Animation hoverAnim = new Animation(0f, Theme.ANIM_SPEED_FAST);
     private volatile boolean installing = false;
+    private volatile String installError = null;
 
     public MarketplaceCard(MarketplaceEntry entry, int x, int y, int width) {
         this.entry = entry;
@@ -59,10 +60,16 @@ public class MarketplaceCard extends Component {
         }
         context.drawText(mc.textRenderer, desc, textLeft, y + 20, Theme.TEXT_SECONDARY, true);
 
-        // Version badge (bottom right)
+        // Version/status text (bottom right)
         String ver = "v" + entry.getVersion();
-        int verW = mc.textRenderer.getWidth(ver);
-        context.drawText(mc.textRenderer, ver, x + width - verW - 8, y + 34, Theme.TEXT_MUTED, true);
+        String status = installed ? "Installed" : null;
+        if (status != null) {
+            int statusW = mc.textRenderer.getWidth(status);
+            context.drawText(mc.textRenderer, status, x + width - statusW - 8, y + 34, Theme.ACCENT_ENABLED, true);
+        } else {
+            int verW = mc.textRenderer.getWidth(ver);
+            context.drawText(mc.textRenderer, ver, x + width - verW - 8, y + 34, Theme.TEXT_MUTED, true);
+        }
 
         // Vote buttons (bottom left)
         int voteY = y + 33;
@@ -96,6 +103,11 @@ public class MarketplaceCard extends Component {
         GuiRenderUtil.drawOutline(context, btnX, btnY, btnW, 16, Theme.withAlpha(btnBorder, 120));
         int btnTextColor = installed ? Theme.NOTIFY_DISABLED : Theme.ACCENT_ENABLED;
         context.drawText(mc.textRenderer, btnText, btnX + 8, btnY + 4, btnTextColor, true);
+
+        if (installError != null && !installError.isEmpty()) {
+            String errText = mc.textRenderer.trimToWidth("Install failed: " + installError, width - 20);
+            context.drawText(mc.textRenderer, errText, textLeft, y + 34, Theme.NOTIFY_WARNING, true);
+        }
     }
 
     private int getBtnWidth(boolean installed) {
@@ -136,11 +148,21 @@ public class MarketplaceCard extends Component {
         if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + 16) {
             if (!installing) {
                 installing = true;
+                installError = null;
                 if (installed) {
                     mgr.uninstallAddon(entry.getId());
                     installing = false;
                 } else {
-                    mgr.installAddon(entry).whenComplete((v, ex) -> installing = false);
+                    mgr.installAddon(entry).whenComplete((v, ex) -> {
+                        installing = false;
+                        if (ex != null) {
+                            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                            String msg = cause.getMessage();
+                            installError = msg == null ? cause.getClass().getSimpleName() : msg;
+                        } else {
+                            installError = null;
+                        }
+                    });
                 }
             }
             return true;

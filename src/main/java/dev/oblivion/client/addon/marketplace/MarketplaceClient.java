@@ -51,6 +51,14 @@ public class MarketplaceClient {
                 return cachedIndex;
             }
 
+            // Development fallback: prefer local marketplace folder if present.
+            MarketplaceIndex localIndex = loadLocalIndex();
+            if (localIndex != null) {
+                cachedIndex = localIndex;
+                lastFetchTime = now;
+                return cachedIndex;
+            }
+
             try {
                 String json = httpGet(repoUrl + "/index.json");
                 cachedIndex = MarketplaceIndex.fromJson(json);
@@ -76,6 +84,12 @@ public class MarketplaceClient {
      */
     public CompletableFuture<Void> downloadAddon(MarketplaceEntry entry, Path targetDir) {
         return CompletableFuture.runAsync(() -> {
+            Path localRoot = resolveLocalMarketplaceRoot();
+            if (localRoot != null) {
+                downloadAddonFromLocal(entry, targetDir, localRoot);
+                return;
+            }
+
             try {
                 Files.createDirectories(targetDir);
 
@@ -128,6 +142,52 @@ public class MarketplaceClient {
         } catch (Exception e) {
             OblivionClient.LOGGER.warn("Failed to load marketplace disk cache", e);
             return null;
+        }
+    }
+
+    private MarketplaceIndex loadLocalIndex() {
+        Path localRoot = resolveLocalMarketplaceRoot();
+        if (localRoot == null) return null;
+
+        try {
+            String json = Files.readString(localRoot.resolve("index.json"), StandardCharsets.UTF_8);
+            return MarketplaceIndex.fromJson(json);
+        } catch (Exception e) {
+            OblivionClient.LOGGER.warn("Failed to load local marketplace index: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Path resolveLocalMarketplaceRoot() {
+        Path localRoot = Path.of("marketplace");
+        if (Files.isDirectory(localRoot) && Files.exists(localRoot.resolve("index.json"))) {
+            return localRoot;
+        }
+        return null;
+    }
+
+    private void downloadAddonFromLocal(MarketplaceEntry entry, Path targetDir, Path localRoot) {
+        Path sourceDir = localRoot.resolve("addons").resolve(entry.getId());
+        if (!Files.isDirectory(sourceDir)) {
+            throw new RuntimeException("Local addon directory not found: " + sourceDir.toAbsolutePath());
+        }
+
+        try {
+            Files.createDirectories(targetDir);
+            Files.copy(sourceDir.resolve("addon.json"), targetDir.resolve("addon.json"),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            for (String file : entry.getFiles()) {
+                if ("addon.json".equals(file)) continue;
+                Path srcFile = sourceDir.resolve(file);
+                Path dstFile = targetDir.resolve(file);
+                if (dstFile.getParent() != null) {
+                    Files.createDirectories(dstFile.getParent());
+                }
+                Files.copy(srcFile, dstFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to copy local addon '" + entry.getId() + "': " + e.getMessage(), e);
         }
     }
 }
