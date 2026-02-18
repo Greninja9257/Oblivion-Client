@@ -21,8 +21,9 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation "io.netty:netty-handler-proxy:4.1.115.Final"
-    implementation "com.github.GeyserMC:MCProtocolLib:1.21.4-1"
+    // Bundle bot networking libraries into the remapped jar for runtime.
+    implementation(include("io.netty:netty-handler-proxy:4.1.115.Final"))
+    implementation(include("com.github.GeyserMC:MCProtocolLib:1.21.4-1"))
 }
 
 loom {
