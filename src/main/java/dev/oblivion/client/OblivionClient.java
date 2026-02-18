@@ -8,6 +8,7 @@ import dev.oblivion.client.event.EventBus;
 import dev.oblivion.client.gui.hud.HudManager;
 import dev.oblivion.client.gui.notification.NotificationManager;
 import dev.oblivion.client.module.ModuleManager;
+import dev.oblivion.client.addon.AddonManager;
 import dev.oblivion.client.plugin.PluginManager;
 import dev.oblivion.client.proxy.ProxyManager;
 import dev.oblivion.client.social.FriendManager;
@@ -32,6 +33,7 @@ public class OblivionClient {
     public final BotManager botManager = new BotManager();
     public final HudManager hudManager = new HudManager();
     public final PluginManager pluginManager = new PluginManager();
+    public final AddonManager addonManager = new AddonManager();
     public final NotificationManager notificationManager = new NotificationManager();
 
     private volatile boolean initialized = false;
@@ -58,6 +60,7 @@ public class OblivionClient {
         try { proxyManager.init(); } catch (Exception e) { LOGGER.error("Failed to init proxies", e); }
         try { botManager.init(); } catch (Exception e) { LOGGER.error("Failed to init bot manager", e); }
         try { pluginManager.init(); } catch (Exception e) { LOGGER.error("Failed to init plugins", e); }
+        try { addonManager.init(); } catch (Exception e) { LOGGER.error("Failed to init addons", e); }
         try { configManager.load(); } catch (Exception e) { LOGGER.error("Failed to load config", e); }
 
         LOGGER.info("{} v{} initialized successfully!", NAME, VERSION);
@@ -67,6 +70,7 @@ public class OblivionClient {
         LOGGER.info("Shutting down {}...", NAME);
         try { configManager.save(); } catch (Exception e) { LOGGER.error("Failed to save config", e); }
         try { botManager.shutdown(); } catch (Exception e) { LOGGER.error("Failed to shutdown bot manager", e); }
+        try { addonManager.shutdown(); } catch (Exception e) { LOGGER.error("Failed to shutdown addons", e); }
         try { pluginManager.shutdown(); } catch (Exception e) { LOGGER.error("Failed to shutdown plugins", e); }
         initialized = false;
     }
@@ -81,5 +85,6 @@ public class OblivionClient {
     public BotManager getBotManager() { return botManager; }
     public HudManager getHudManager() { return hudManager; }
     public PluginManager getPluginManager() { return pluginManager; }
+    public AddonManager getAddonManager() { return addonManager; }
     public NotificationManager getNotificationManager() { return notificationManager; }
 }

@@ -3,6 +3,7 @@ package dev.oblivion.client.gui.screen;
 import com.google.gson.JsonObject;
 import dev.oblivion.client.OblivionClient;
 import dev.oblivion.client.gui.animation.Animation;
+import dev.oblivion.client.gui.component.MarketplacePanel;
 import dev.oblivion.client.gui.component.ModuleCard;
 import dev.oblivion.client.gui.component.SearchBar;
 import dev.oblivion.client.gui.render.GuiRenderUtil;
@@ -36,9 +37,17 @@ public class ClickGuiScreen extends Screen {
     private final Animation tabScrollAnim = new Animation(0f, Theme.ANIM_SPEED_FAST);
     private int totalTabsWidth = 0;
 
+    // Marketplace view state
+    private boolean marketplaceOpen = false;
+    private MarketplacePanel marketplacePanel;
+    private SearchBar marketplaceSearchBar;
+
     private static final int GUI_WIDTH = 380;
     private static final int GUI_MARGIN_TOP = 30;
     private static final int CARD_SPACING = 4;
+
+    // Marketplace button dimensions (in header, right of version)
+    private int mpBtnX, mpBtnY, mpBtnW, mpBtnH;
 
     public ClickGuiScreen() {
         super(Text.literal("Oblivion ClickGUI"));
@@ -63,7 +72,7 @@ public class ClickGuiScreen extends Screen {
         for (Category cat : Category.values()) {
             totalTabsWidth += this.textRenderer.getWidth(cat.displayName) + 16 + 4;
         }
-        totalTabsWidth -= 4; // no trailing spacing
+        totalTabsWidth -= 4;
     }
 
     private void rebuildCards() {
@@ -111,11 +120,27 @@ public class ClickGuiScreen extends Screen {
         // Header
         GuiRenderUtil.drawRoundedRect(context, guiX, guiY, GUI_WIDTH, Theme.HEADER_HEIGHT, 6, Theme.BG_HEADER);
 
+        int titleY = guiY + (Theme.HEADER_HEIGHT - 8) / 2;
+
+        if (marketplaceOpen) {
+            renderMarketplaceContent(context, mouseX, mouseY, delta, guiX, guiY, guiHeight, titleY);
+        } else {
+            renderClickGuiContent(context, mouseX, mouseY, delta, guiX, guiY, guiHeight, titleY);
+        }
+
+        // Bottom accent line (same for both modes)
+        int accentColor = Theme.ACCENT_PRIMARY;
+        int bottomY = guiY + guiHeight - 2;
+        GuiRenderUtil.drawGradientRect(context, guiX + 20, bottomY, GUI_WIDTH - 40, 2,
+                Theme.withAlpha(accentColor, 0), accentColor);
+    }
+
+    private void renderClickGuiContent(DrawContext context, int mouseX, int mouseY, float delta,
+                                       int guiX, int guiY, int guiHeight, int titleY) {
         // Title with glow
         String title = "OBLIVION";
         int titleWidth = this.textRenderer.getWidth(title);
         int titleX = guiX + Theme.PADDING_LARGE;
-        int titleY = guiY + (Theme.HEADER_HEIGHT - 8) / 2;
         context.drawText(this.textRenderer, title, titleX + 1, titleY, Theme.withAlpha(Theme.ACCENT_PRIMARY, 60), false);
         context.drawText(this.textRenderer, title, titleX, titleY, Theme.ACCENT_PRIMARY, true);
 
@@ -123,9 +148,23 @@ public class ClickGuiScreen extends Screen {
         String version = "v" + OblivionClient.VERSION;
         context.drawText(this.textRenderer, version, titleX + titleWidth + 4, titleY, Theme.TEXT_MUTED, true);
 
-        // Close hint
-        String hint = "ESC to close";
+        // Marketplace button in header (right side, before ESC hint)
+        String mpLabel = "\u2302 Market";
+        mpBtnW = this.textRenderer.getWidth(mpLabel) + 12;
+        mpBtnH = 16;
+        String hint = "ESC";
         int hintWidth = this.textRenderer.getWidth(hint);
+        mpBtnX = guiX + GUI_WIDTH - hintWidth - Theme.PADDING - mpBtnW - 8;
+        mpBtnY = guiY + (Theme.HEADER_HEIGHT - mpBtnH) / 2;
+
+        boolean mpBtnHovered = mouseX >= mpBtnX && mouseX <= mpBtnX + mpBtnW
+                && mouseY >= mpBtnY && mouseY <= mpBtnY + mpBtnH;
+        int mpBtnBg = mpBtnHovered ? Theme.withAlpha(Theme.ACCENT_SECONDARY, 50) : Theme.withAlpha(Theme.ACCENT_SECONDARY, 25);
+        GuiRenderUtil.drawRoundedRect(context, mpBtnX, mpBtnY, mpBtnW, mpBtnH, 3, mpBtnBg);
+        GuiRenderUtil.drawOutline(context, mpBtnX, mpBtnY, mpBtnW, mpBtnH, Theme.withAlpha(Theme.ACCENT_SECONDARY, mpBtnHovered ? 180 : 100));
+        context.drawText(this.textRenderer, mpLabel, mpBtnX + 6, mpBtnY + 4, mpBtnHovered ? Theme.ACCENT_SECONDARY : Theme.TEXT_SECONDARY, true);
+
+        // ESC hint
         context.drawText(this.textRenderer, hint, guiX + GUI_WIDTH - hintWidth - Theme.PADDING, titleY, Theme.TEXT_MUTED, true);
 
         // Search bar
@@ -151,12 +190,10 @@ public class ClickGuiScreen extends Screen {
         int tabClipRight = tabAreaLeft + tabAreaWidth - arrowWidth;
 
         if (needsTabScroll) {
-            // Left arrow
             boolean canScrollLeft = tabScrollOffset > 0;
             int leftArrowColor = canScrollLeft ? Theme.TEXT_PRIMARY : Theme.withAlpha(Theme.TEXT_MUTED, 80);
             context.drawText(this.textRenderer, "\u25C0", tabAreaLeft + 1, tabY + (Theme.TAB_HEIGHT - 8) / 2, leftArrowColor, true);
 
-            // Right arrow
             float maxTabScroll = Math.max(0, totalTabsWidth - (tabClipRight - tabClipLeft));
             boolean canScrollRight = tabScrollOffset < maxTabScroll;
             int rightArrowColor = canScrollRight ? Theme.TEXT_PRIMARY : Theme.withAlpha(Theme.TEXT_MUTED, 80);
@@ -175,7 +212,6 @@ public class ClickGuiScreen extends Screen {
 
             int tabWidth = this.textRenderer.getWidth(cat.displayName) + 16;
 
-            // Only process hover if within clip bounds
             boolean tabVisible = tabX + tabWidth > tabClipLeft && tabX < tabClipRight;
             boolean tabHovered = tabVisible && mouseX >= Math.max(tabX, tabClipLeft) && mouseX <= Math.min(tabX + tabWidth, tabClipRight)
                     && mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT;
@@ -235,7 +271,6 @@ public class ClickGuiScreen extends Screen {
         for (ModuleCard card : moduleCards) {
             card.setPosition(card.getX(), cardY);
             int cardH = card.getFullHeight();
-            // Render if any part is visible (scissor handles partial clipping)
             if (cardY + cardH > listTop && cardY < listBottom) {
                 card.render(context, mouseX, mouseY, delta);
             }
@@ -253,11 +288,65 @@ public class ClickGuiScreen extends Screen {
             context.fill(scrollbarX, listTop, scrollbarX + Theme.SCROLLBAR_WIDTH, listBottom, Theme.withAlpha(Theme.BG_CARD, 100));
             GuiRenderUtil.drawRoundedRect(context, scrollbarX, scrollbarY, Theme.SCROLLBAR_WIDTH, scrollbarHeight, 1, Theme.ACCENT_PRIMARY);
         }
+    }
 
-        // Bottom accent line
-        int bottomY = guiY + guiHeight - 2;
-        GuiRenderUtil.drawGradientRect(context, guiX + 20, bottomY, GUI_WIDTH - 40, 2,
-                Theme.withAlpha(Theme.ACCENT_PRIMARY, 0), Theme.ACCENT_PRIMARY);
+    private void renderMarketplaceContent(DrawContext context, int mouseX, int mouseY, float delta,
+                                          int guiX, int guiY, int guiHeight, int titleY) {
+        // Title with glow — same style as main GUI but says "MARKETPLACE"
+        String title = "MARKETPLACE";
+        int titleX = guiX + Theme.PADDING_LARGE;
+        context.drawText(this.textRenderer, title, titleX + 1, titleY, Theme.withAlpha(Theme.ACCENT_PRIMARY, 60), false);
+        context.drawText(this.textRenderer, title, titleX, titleY, Theme.ACCENT_PRIMARY, true);
+
+        // Back button in header (right side, before ESC hint)
+        String backLabel = "\u2190 Back";
+        mpBtnW = this.textRenderer.getWidth(backLabel) + 12;
+        mpBtnH = 16;
+        String hint = "ESC";
+        int hintWidth = this.textRenderer.getWidth(hint);
+        mpBtnX = guiX + GUI_WIDTH - hintWidth - Theme.PADDING - mpBtnW - 8;
+        mpBtnY = guiY + (Theme.HEADER_HEIGHT - mpBtnH) / 2;
+
+        boolean backHovered = mouseX >= mpBtnX && mouseX <= mpBtnX + mpBtnW
+                && mouseY >= mpBtnY && mouseY <= mpBtnY + mpBtnH;
+        int backBg = backHovered ? Theme.withAlpha(Theme.ACCENT_SECONDARY, 50) : Theme.withAlpha(Theme.ACCENT_SECONDARY, 25);
+        GuiRenderUtil.drawRoundedRect(context, mpBtnX, mpBtnY, mpBtnW, mpBtnH, 3, backBg);
+        GuiRenderUtil.drawOutline(context, mpBtnX, mpBtnY, mpBtnW, mpBtnH, Theme.withAlpha(Theme.ACCENT_SECONDARY, backHovered ? 180 : 100));
+        context.drawText(this.textRenderer, backLabel, mpBtnX + 6, mpBtnY + 4, backHovered ? Theme.ACCENT_SECONDARY : Theme.TEXT_SECONDARY, true);
+
+        // ESC hint
+        context.drawText(this.textRenderer, hint, guiX + GUI_WIDTH - hintWidth - Theme.PADDING, titleY, Theme.TEXT_MUTED, true);
+
+        // Search bar for marketplace
+        int searchY = guiY + Theme.HEADER_HEIGHT + Theme.PADDING_SMALL;
+        if (marketplaceSearchBar == null) {
+            marketplaceSearchBar = new SearchBar(guiX + Theme.PADDING, searchY, GUI_WIDTH - Theme.PADDING * 2);
+        } else {
+            marketplaceSearchBar.setPosition(guiX + Theme.PADDING, searchY);
+            marketplaceSearchBar.setSize(GUI_WIDTH - Theme.PADDING * 2, Theme.SEARCH_BAR_HEIGHT);
+        }
+        marketplaceSearchBar.render(context, mouseX, mouseY, delta);
+
+        // Marketplace panel content area
+        int panelTop = guiY + Theme.HEADER_HEIGHT + Theme.SEARCH_BAR_HEIGHT + Theme.PADDING * 2;
+        int panelBottom = guiY + guiHeight - Theme.PADDING;
+        int panelHeight = panelBottom - panelTop;
+        int panelWidth = GUI_WIDTH - Theme.PADDING * 2 - Theme.SCROLLBAR_WIDTH - 2;
+
+        if (marketplacePanel == null) {
+            marketplacePanel = new MarketplacePanel(guiX + Theme.PADDING, panelTop, panelWidth, panelHeight);
+            marketplacePanel.refresh();
+        } else {
+            marketplacePanel.setPosition(guiX + Theme.PADDING, panelTop);
+            marketplacePanel.setSize(panelWidth, panelHeight);
+        }
+
+        // Forward search filter
+        marketplacePanel.setSearchFilter(marketplaceSearchBar.getText().toLowerCase());
+
+        enableScissor(context, guiX, panelTop, GUI_WIDTH, panelHeight);
+        marketplacePanel.render(context, mouseX, mouseY, delta);
+        disableScissor(context);
     }
 
     private void enableScissor(DrawContext context, int x, int y, int width, int height) {
@@ -278,6 +367,32 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // If marketplace view is open, route input only to marketplace UI
+        if (marketplaceOpen) {
+            if (mouseX >= mpBtnX && mouseX <= mpBtnX + mpBtnW && mouseY >= mpBtnY && mouseY <= mpBtnY + mpBtnH) {
+                marketplaceOpen = false;
+                return true;
+            }
+
+            // Search bar
+            if (marketplaceSearchBar != null && marketplaceSearchBar.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+
+            // Marketplace panel
+            if (marketplacePanel != null && marketplacePanel.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+
+            return true;
+        }
+
+        // Marketplace button in header
+        if (mouseX >= mpBtnX && mouseX <= mpBtnX + mpBtnW && mouseY >= mpBtnY && mouseY <= mpBtnY + mpBtnH) {
+            marketplaceOpen = true;
+            return true;
+        }
+
         if (searchBar.mouseClicked(mouseX, mouseY, button)) {
             rebuildCards();
             scrollTarget = 0;
@@ -298,19 +413,17 @@ public class ClickGuiScreen extends Screen {
         // Check arrow clicks
         if (needsTabScroll && mouseY >= tabY && mouseY <= tabY + Theme.TAB_HEIGHT) {
             if (mouseX >= tabAreaLeft && mouseX <= tabAreaLeft + arrowWidth) {
-                // Left arrow clicked
                 tabScrollTarget = Math.max(0, tabScrollTarget - 60);
                 return true;
             }
             if (mouseX >= tabAreaLeft + tabAreaWidth - arrowWidth && mouseX <= tabAreaLeft + tabAreaWidth) {
-                // Right arrow clicked
                 float maxTabScroll = Math.max(0, totalTabsWidth - (tabClipRight - tabClipLeft));
                 tabScrollTarget = Math.min(maxTabScroll, tabScrollTarget + 60);
                 return true;
             }
         }
 
-        // Check tab clicks (only within clip area)
+        // Check tab clicks
         int tabX = tabClipLeft - (int) tabScrollOffset;
         for (Category cat : Category.values()) {
             int tabWidth = this.textRenderer.getWidth(cat.displayName) + 16;
@@ -337,6 +450,7 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (marketplaceOpen) return true;
         for (ModuleCard card : moduleCards) {
             if (card.mouseReleased(mouseX, mouseY, button)) return true;
         }
@@ -345,6 +459,7 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (marketplaceOpen) return true;
         for (ModuleCard card : moduleCards) {
             if (card.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) return true;
         }
@@ -353,6 +468,13 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (marketplaceOpen) {
+            if (marketplacePanel != null) {
+                return marketplacePanel.mouseScrolled(mouseX, mouseY, verticalAmount);
+            }
+            return true;
+        }
+
         int guiX = (this.width - GUI_WIDTH) / 2;
         int guiY = GUI_MARGIN_TOP;
         int tabY = guiY + Theme.HEADER_HEIGHT + Theme.SEARCH_BAR_HEIGHT + Theme.PADDING * 2;
@@ -387,6 +509,18 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // ESC closes marketplace first, then closes GUI
+        if (marketplaceOpen) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                marketplaceOpen = false;
+                return true;
+            }
+            if (marketplaceSearchBar != null && marketplaceSearchBar.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
+            }
+            return true;
+        }
+
         if (keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT && isAnyTextInputFocused()) {
             return true;
         }
@@ -419,6 +553,13 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean charTyped(char chr, int modifiers) {
+        if (marketplaceOpen) {
+            if (marketplaceSearchBar != null && marketplaceSearchBar.charTyped(chr, modifiers)) {
+                return true;
+            }
+            return true;
+        }
+
         if (searchBar.charTyped(chr, modifiers)) {
             rebuildCards();
             scrollTarget = 0;

@@ -74,6 +74,7 @@ public class ModuleManager {
         register(new SafeWalk());
         register(new Sneak());
         register(new ReverseStep());
+        register(new ClickTP());
 
         // Render
         register(new ESP());
@@ -228,6 +229,13 @@ public class ModuleManager {
 
     private boolean isWurstModule(Module module) {
         return module.getClass().getSimpleName().startsWith("Wurst");
+    }
+
+    public void unregister(Module module) {
+        if (module == null) return;
+        modules.remove(module);
+        byClass.remove(module.getClass());
+        byName.remove(module.name);
     }
 
     @SuppressWarnings("unchecked")

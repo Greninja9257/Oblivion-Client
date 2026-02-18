@@ -1,0 +1,10 @@
+{
+  "id": "oblivion-autogg",
+  "name": "AutoGG",
+  "author": "Greninja9257",
+  "description": "Automatically sends 'gg' in chat after you kill a player.",
+  "version": "1.0.0",
+  "type": "java",
+  "category": "MISC",
+  "mainClass": "AutoGG"
+}

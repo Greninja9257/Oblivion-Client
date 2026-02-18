@@ -1,0 +1,10 @@
+{
+  "id": "oblivion-playerlogger",
+  "name": "PlayerLogger",
+  "author": "Greninja9257",
+  "description": "Logs player coordinates, equipment, and login/logout times to a file.",
+  "version": "1.0.0",
+  "type": "java",
+  "category": "MISC",
+  "mainClass": "PlayerLogger"
+}

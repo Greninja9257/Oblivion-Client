@@ -1,0 +1,32 @@
+{
+  "timestamp": 1739836800000,
+  "version": 1,
+  "addons": [
+    {
+      "id": "oblivion-autogg",
+      "name": "AutoGG",
+      "author": "Greninja9257",
+      "description": "Automatically sends 'gg' in chat after you kill a player.",
+      "version": "1.0.0",
+      "type": "java",
+      "category": "MISC",
+      "files": ["addon.json", "AutoGG.java"],
+      "createdAt": 1739836800000,
+      "updatedAt": 1739836800000,
+      "tags": ["chat", "kill", "gg", "auto", "pvp"]
+    },
+    {
+      "id": "oblivion-playerlogger",
+      "name": "PlayerLogger",
+      "author": "Greninja9257",
+      "description": "Logs player coordinates, equipment, and login/logout times to a file.",
+      "version": "1.0.0",
+      "type": "java",
+      "category": "MISC",
+      "files": ["addon.json", "PlayerLogger.java"],
+      "createdAt": 1739836800000,
+      "updatedAt": 1739836800000,
+      "tags": ["log", "players", "coords", "tracker", "spy"]
+    }
+  ]
+}
