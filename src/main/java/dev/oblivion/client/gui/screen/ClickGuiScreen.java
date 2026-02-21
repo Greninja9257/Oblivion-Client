@@ -100,7 +100,11 @@ public class ClickGuiScreen extends Screen {
             }
         }
 
-        result.sort(Comparator.comparing(m -> m.name, String.CASE_INSENSITIVE_ORDER));
+        result.sort((a, b) -> {
+            if (a.name.equalsIgnoreCase("SpawnBots")) return -1;
+            if (b.name.equalsIgnoreCase("SpawnBots")) return 1;
+            return String.CASE_INSENSITIVE_ORDER.compare(a.name, b.name);
+        });
         return result;
     }
 

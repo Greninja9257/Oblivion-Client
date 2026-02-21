@@ -86,17 +86,28 @@ public class ModuleCard extends Component {
         int dotColor = Theme.lerpColor(Theme.ACCENT_DISABLED, Theme.ACCENT_ENABLED, toggleT);
         GuiRenderUtil.drawRoundedRect(context, dotX, dotY, dotSize, dotSize, 4, dotColor);
 
+        // Pre-compute keybind position so description can clamp to it
+        String bindText = bindListening ? "[...]" : "[" + KeyUtil.getKeyName(module.getKeybind()) + "]";
+        int bindWidth = mc.textRenderer.getWidth(bindText);
+        int bindX = x + width - bindWidth - 8;
+
         // Module name
         int nameColor = Theme.lerpColor(Theme.TEXT_SECONDARY, Theme.TEXT_PRIMARY, toggleT);
         context.drawText(mc.textRenderer, module.name, x + 24, y + 8, nameColor, true);
 
-        // Description (smaller, muted)
-        context.drawText(mc.textRenderer, module.description, x + 24, y + 19, Theme.TEXT_MUTED, true);
+        // Description — truncate with ellipsis if it would overflow into the keybind area
+        String desc = module.description;
+        int descMaxWidth = bindX - (x + 24) - 8;
+        if (mc.textRenderer.getWidth(desc) > descMaxWidth) {
+            int target = descMaxWidth - mc.textRenderer.getWidth("...");
+            while (!desc.isEmpty() && mc.textRenderer.getWidth(desc) > target) {
+                desc = desc.substring(0, desc.length() - 1);
+            }
+            desc += "...";
+        }
+        context.drawText(mc.textRenderer, desc, x + 24, y + 19, Theme.TEXT_MUTED, true);
 
         // Keybind button
-        String bindText = bindListening ? "[...]" : "[" + KeyUtil.getKeyName(module.getKeybind()) + "]";
-        int bindWidth = mc.textRenderer.getWidth(bindText);
-        int bindX = x + width - bindWidth - 8;
         int bindColor = bindListening ? Theme.ACCENT_TERTIARY : Theme.TEXT_MUTED;
         context.drawText(mc.textRenderer, bindText, bindX, y + (COLLAPSED_HEIGHT - 8) / 2, bindColor, true);
 

@@ -32,7 +32,7 @@ public class Zoom extends Module {
             .build()
     );
 
-    private double currentFactor;
+    private double currentFactor = 4.0;
 
     public Zoom() {
         super("Zoom", "Zooms in your view.", Category.RENDER);

@@ -144,7 +144,7 @@ public class ModuleManager {
         register(new PasswordCrack());
 
         // Bots
-        register(new BotSpawnSwarm());
+        register(new SpawnBots());
         register(new BotDisconnectAll());
         register(new BotAutoRegister());
         register(new BotFollow());

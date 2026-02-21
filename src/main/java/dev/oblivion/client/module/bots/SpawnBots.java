@@ -8,7 +8,7 @@ import net.minecraft.client.network.ServerInfo;
 
 import java.util.List;
 
-public final class BotSpawnSwarm extends BotModule {
+public final class SpawnBots extends BotModule {
     private final BoolSetting randomNames = settings.getDefaultGroup().add(
         new BoolSetting.Builder().name("Random Names").description("Use generated random usernames for spawned bots.").defaultValue(true).build()
     );
@@ -37,8 +37,8 @@ public final class BotSpawnSwarm extends BotModule {
         new StringSetting.Builder().name("Fixed Name").description("Used if random names is disabled.").defaultValue("obv_bot").visible(() -> !randomNames.get()).build()
     );
 
-    public BotSpawnSwarm() {
-        super("BotSpawnSwarm", "Spawns integrated Java bots with configurable amount/random names.");
+    public SpawnBots() {
+        super("SpawnBots", "Spawns integrated Java bots with configurable amount/random names.");
     }
 
     @Override
